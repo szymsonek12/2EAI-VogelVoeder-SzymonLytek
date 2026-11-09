@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Geschiedenis - Vogelhuisje</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
+        .card { background: #222; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        h2 { color: #4fc3f7; }
+        a { color: #4CAF50; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        .status { font-size: 0.8em; color: #888; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Geschiedenis van het Vogelhuisje</h1>
+        <p><a href="/">&larr; Terug naar live dashboard</a></p>
+        <p class="status" id="update-status">Wachten op data...</p>
+        <div class="card"><h2>Gewicht (laatste 50 metingen)</h2><canvas id="weightChart"></canvas></div>
+        <div class="card"><h2>Temperatuur & Luchtvochtigheid</h2><canvas id="tempHumChart"></canvas></div>
+    </div>
+    <script>
+        let weightChart = null;
+        let tempHumChart = null;
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                if (data.length === 0) return;
+                document.getElementById('update-status').textContent = "Live updating... (elke 10 sec)";
+
+                const labels = data.map(d => d.tijdstip.split(' ')[1]);
+                const weights = data.map(d => d.gewicht);
+                const temps = data.map(d => d.temperatuur);
+                const hums = data.map(d => d.vochtigheid);
+
+                if (weightChart === null) {
+                    weightChart = new Chart(document.getElementById('weightChart'), {
+                        type: 'line',
+                        data: { labels: labels, datasets: [{ label: 'Gewicht (g)', data: weights, borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.2)', fill: true, tension: 0.3 }] },
+                        options: { responsive: true, animation: false }
+                    });
+                    tempHumChart = new Chart(document.getElementById('tempHumChart'), {
+                        type: 'line',
+                        data: { labels: labels, datasets: [
+                            { label: 'Temperatuur (°C)', data: temps, borderColor: '#f44336', tension: 0.3 },
+                            { label: 'Luchtvochtigheid (%)', data: hums, borderColor: '#03a9f4', tension: 0.3 }
+                        ]},
+                        options: { responsive: true, animation: false }
+                    });
+                } else {
+                    weightChart.data.labels = labels; weightChart.data.datasets[0].data = weights; weightChart.update();
+                    tempHumChart.data.labels = labels; tempHumChart.data.datasets[0].data = temps; tempHumChart.data.datasets[1].data = hums; tempHumChart.update();
+                }
+            } catch (e) { console.error(e); }
+        }
+        loadHistory();
+        setInterval(loadHistory, 10000);
+    </script>
+</body>
+</html>
