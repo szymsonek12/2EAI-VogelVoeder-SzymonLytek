@@ -1,3 +1,6 @@
+>[!Warning]
+>Deze project is nog onder bewerking. benamingen en andere zijn nog te wijzigen. ook een aansluit schema met pinnouts moet nog gemaakt worden.!!!!!
+
 # 🐦 Smart Vogelhuisje (ESP32-S3 + Raspberry Pi 4)
 
 Dit project is een compleet IoT-systeem om een vogelhuisje in de gaten te houden. Het combineert een livestream met sensordata (gewicht, temperatuur en luchtvochtigheid). De data wordt verzameld door een **ESP32-S3-CAM** en via een eigen lokaal WiFi-netwerk naar een **Raspberry Pi 4** gestuurd. De Raspberry Pi fungeert als Access Point, webserver en slaat de geschiedenis op in een SQLite-database.
