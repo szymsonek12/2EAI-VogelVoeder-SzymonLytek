@@ -1,3 +1,10 @@
+>[!note]
+>-tcp in plaats van udp maken voor beter uit lezen van data
+>
+>-servo integreren
+>
+>-loadcell calibreren
+
 >[!Warning]
 >Deze project is nog onder bewerking. benamingen en andere zijn nog te wijzigen. ook een aansluit schema met pinnouts moet nog gemaakt worden.!!!!!
 
