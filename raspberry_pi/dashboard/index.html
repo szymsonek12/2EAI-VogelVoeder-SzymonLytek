@@ -7,28 +7,56 @@
         body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1100px; margin: auto; }
         .card { background: #222; border-radius: 12px; padding: 20px; }
-        .label { color: #888; text-transform: uppercase; font-size: .75em; letter-spacing: 1px; }
+        .label { color: #888; text-transform: uppercase; font-size: .75em; letter-spacing: 1px; margin-bottom: 10px;}
         .big { font-size: 3em; font-weight: 700; color: #4CAF50; }
         .value { font-size: 2em; color: #4fc3f7; }
         img { width: 100%; border-radius: 8px; display: block; }
         @media(max-width:700px){ .grid { grid-template-columns: 1fr; } }
-        a { color: #4CAF50; text-decoration: none; font-weight: bold; }
+        a { color: #4CAF50; text-decoration: none; font-weight: bold; display:inline-block; margin-bottom:20px;}
         a:hover { text-decoration: underline; }
+        
+        /* Servo UI */
+        input[type=range] { width: 100%; cursor: pointer; margin-top: 10px; }
+        input[type=number] { padding: 8px; border-radius: 5px; border: 1px solid #444; background: #111; color: white; width: 80px;}
+        button { padding: 8px 15px; background: #4fc3f7; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #000; margin-left: 10px;}
+        button:hover { background: #29b6f6; }
+        .mode-toggle { margin-top: 15px; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
     <h1>Vogelhuisje Live</h1>
-    <p><a href="/geschiedenis">Bekijk Geschiedenis &rarr;</a></p>
+    <a href="/geschiedenis">Bekijk Geschiedenis &rarr;</a>
     <div class="grid">
         <div class="card"><div class="label">Gewicht</div><div class="big" id="weight">-- g</div></div>
         <div class="card"><div class="label">Temperatuur</div><div class="value" id="temp">-- °C</div></div>
         <div class="card"><div class="label">Luchtvochtigheid</div><div class="value" id="humidity">-- %</div></div>
-        <div class="card"><div class="label">Servo positie</div><div class="value" id="servo">-- °</div></div>
+        
+        <div class="card">
+            <div class="label">Servo Besturing</div>
+            <div class="value" id="servo-val">90°</div>
+            
+            <div class="mode-toggle">
+                <input type="checkbox" id="auto-mode" onchange="toggleAuto()">
+                <label for="auto-mode">Automatische modus (op gewicht)</label>
+            </div>
+
+            <div id="manual-controls">
+                <input type="range" id="servo-slider" min="0" max="180" value="90" oninput="updateServoDisplay(this.value)" onchange="sendManualServo(this.value)">
+            </div>
+
+            <div id="auto-controls" style="display:none; margin-top:15px;">
+                Drempelwaarde (gram): 
+                <input type="number" id="threshold-input" value="50" min="1">
+                <button onclick="sendThreshold()">Opslaan</button>
+            </div>
+        </div>
+
         <div class="card" style="grid-column:1/-1">
             <div class="label">Camera</div>
             <img src="/video_feed" alt="camera">
         </div>
     </div>
+
     <script>
         async function update() {
             try {
@@ -45,6 +73,41 @@
             } catch (e) { console.error(e); } finally { setTimeout(update, 1000); }
         }
         update();
+
+        function updateServoDisplay(val) {
+            document.getElementById('servo-val').innerText = val + "°";
+        }
+
+        async function sendManualServo(val) {
+            if(document.getElementById('auto-mode').checked) return;
+            await fetch('/api/servo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({angle: val})
+            });
+        }
+
+        async function toggleAuto() {
+            let isAuto = document.getElementById('auto-mode').checked;
+            document.getElementById('manual-controls').style.display = isAuto ? 'none' : 'block';
+            document.getElementById('auto-controls').style.display = isAuto ? 'block' : 'none';
+
+            await fetch('/api/servo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({auto: isAuto ? 1 : 0})
+            });
+        }
+
+        async function sendThreshold() {
+            let thresh = document.getElementById('threshold-input').value;
+            await fetch('/api/servo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({threshold: thresh})
+            });
+            alert("Drempelwaarde ingesteld op " + thresh + " gram!");
+        }
     </script>
 </body>
 </html>
