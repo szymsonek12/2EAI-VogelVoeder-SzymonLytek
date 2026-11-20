@@ -1,6 +1,6 @@
 >[!NOTE]
->- TCP in plaats van UDP voor het uitlezen van sensordata (HTTP POST).
->- Servo geïntegreerd (handmatig via dashboard en automatisch op gewicht).
+>- **TCP (HTTP)** wordt gebruikt voor de videostream en de sensordata (via HTTP POST).
+>- **UDP** wordt gebruikt voor de servo-commando's. Dit is een bewuste keuze: de ESP32-S3 heeft te weinig netwerksockets (geheugen) om naast de zware videostream ook nog een tweede TCP-verbinding voor de servo stabiel te houden. UDP is lichtgewicht en blokkeert de camera niet.
 >- Loadcell kalibreren (instructies volgen).
 
 >[!WARNING]
